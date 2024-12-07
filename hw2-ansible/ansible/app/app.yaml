@@ -1,0 +1,19 @@
+---
+- hosts: all
+  tasks:
+  - name: create directory
+    file:
+      path: /app
+      state: directory
+
+  - name: copy
+    copy:
+      src: ../app/
+      dest: /app
+
+  - name: dependencies
+    pip:
+      requirements: /app/requirements.txt
+
+  - name: run
+    command: python3 /app/main.py

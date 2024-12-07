@@ -1,26 +1,26 @@
-version: '3'
-
 services:
-  flask_app:
-    image: flask-app-prod
-    container_name: flask_app
-    restart: always
-    expose:
-      - 5000
-    volumes:
-      - flask_app_artifact:/app
-    environment:
-      - FLASK_ENV=production
-  
-  nginx:
-    image: nginx-flask
-    container_name: nginx_server
-    restart: always
+  server1:
+    tty: true 
+    build: ./Dockerfile_server
     ports:
-      - "80:80"
-    depends_on:
-      - flask_app
+      - 8001:80
 
-volumes:
-  flask_app_artifact:
-    external: true
+  server2:
+    build: ./Dockerfile_server
+    tty: true
+    ports:
+      - 8002:80
+
+  server3:
+    tty: true 
+    build: ./Dockerfile_server
+    ports:
+      - 8003:80
+
+  ansible-master:
+    build: ./Dockerfile_master
+    tty: true 
+    depends_on:
+      - server1
+      - server2
+      - server3
