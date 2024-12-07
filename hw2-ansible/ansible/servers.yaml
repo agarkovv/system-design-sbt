@@ -1,0 +1,4 @@
+[instances]
+    server1 ansible_ssh_user=root ansible_ssh_pass=root
+    server2 ansible_ssh_user=root ansible_ssh_pass=root
+    server3 ansible_ssh_user=root ansible_ssh_pass=root

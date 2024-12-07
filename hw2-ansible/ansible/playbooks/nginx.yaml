@@ -1,0 +1,19 @@
+---
+- hosts: all
+  tasks:
+  - name: nginx install
+    apk:
+      name: nginx
+      state: present
+      update_cache: yes
+
+  - name: nginx config
+    template:
+      src: ../nginx/nginx.conf
+      dest: /etc/nginx/nginx.conf
+
+  - name: run
+    service:
+      name: nginx
+      state: started
+      enabled: yes
