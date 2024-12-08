@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    
+    environment {
+        SONAR_SCANNER_VERSION = '4.7.0.2747'
+        SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
+    }
+    
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/agarkovv/simple-graph-project'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                sh '''
+                    PYTHONPATH=$WORKSPACE \
+                    python3 -m pytest tests \
+                        --cov=app \
+                        --cov-report xml:coverage.xml \
+                        --alluredir=allure-results
+                '''
+            }
+        }
+        
+        stage('Scan') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=simple-graph-project \
+                            -Dsonar.sources=app \
+                            -Dsonar.tests=tests \
+                            -Dsonar.python.coverage.reportPaths=coverage.xml \
+                            -Dsonar.python.version=3.11 \
+                            -Dsonar.host.url=http://sonarqube:9000
+                    '''
+                }
+            }
+        }
+        
+        stage('Reports') {
+            steps {
+                allure([
+                    includeProperties: false,
+                    jdk: '',
+                    properties: [],
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: 'allure-results']]
+                ])
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                sh 'cd /var/lib/ansible && ansible-playbook -i hosts.txt deploy.yml --extra-vars "repo_path=/var/jenkins_home/workspace/app"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline finish!'
+        }
+    }
+} 
