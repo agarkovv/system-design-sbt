@@ -1,0 +1,62 @@
+---
+- name: Deploy app
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Install Python and pip
+      raw: apk add --no-cache python3 py3-pip py3-virtualenv
+
+    - name: Create directory
+      file:
+        path: ~/app
+        state: directory
+        mode: '0755'
+
+    - name: Create package directory
+      file:
+        path: ~/app/app
+        state: directory
+        mode: '0755'
+
+    - name: Copy app files
+      copy:
+        src: "{{ repo_path }}/app/"
+        dest: ~/app/app/
+        mode: '0755'
+
+    - name: Create __init__.py
+      copy:
+        content: ""
+        dest: ~/app/app/__init__.py
+        mode: '0644'
+
+    - name: Copy main.py to root
+      copy:
+        src: "{{ repo_path }}/app/main.py"
+        dest: ~/app/main.py
+        mode: '0755'
+
+    - name: Copy requirements
+      copy:
+        src: "{{ repo_path }}/requirements.txt"
+        dest: ~/app/requirements.txt
+        mode: '0644'
+
+    - name: Create virtual environment
+      command: virtualenv ~/app/venv
+      args:
+        creates: ~/app/venv
+
+    - name: Install requirements in venv
+      pip:
+        requirements: ~/app/requirements.txt
+        virtualenv: ~/app/venv
+        state: present
+
+    - name: Run app
+      command: ~/app/venv/bin/python3 main.py
+      args:
+        chdir: ~/app
+      environment:
+        PYTHONPATH: ~/app
