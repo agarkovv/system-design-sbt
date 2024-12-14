@@ -1,0 +1,26 @@
+services:
+  server1:
+    tty: true 
+    build: ./Dockerfile_server
+    ports:
+      - 8001:80
+
+  server2:
+    build: ./Dockerfile_server
+    tty: true
+    ports:
+      - 8002:80
+
+  server3:
+    tty: true 
+    build: ./Dockerfile_server
+    ports:
+      - 8003:80
+
+  ansible-master:
+    build: ./Dockerfile_master
+    tty: true 
+    depends_on:
+      - server1
+      - server2
+      - server3
